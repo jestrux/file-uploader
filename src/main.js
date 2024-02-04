@@ -144,7 +144,7 @@ FileUploader.prototype.UploadFile = function (file) {
 			},
 		})
 			.then(({ location }) => {
-				this.em.emit("complete", true, location);
+				this.em.emit("success", location);
 			})
 			.catch((error) => {
 				this.em.emit("error", error);
@@ -163,9 +163,9 @@ FileUploader.prototype.UploadFile = function (file) {
 		},
 	};
 
-	var form = new FormData();
-	var name = file.name.replace(/ /g, "-");
-	var ext = name.split(".").pop();
+	const form = new FormData();
+	const name = file.name.replace(/ /g, "-");
+	const ext = name.split(".").pop();
 	form.append("photo", file);
 	form.append("name", name);
 	form.append("ext", ext);
@@ -175,9 +175,19 @@ FileUploader.prototype.UploadFile = function (file) {
 		.post(this.upload_path, form, config)
 		.then((result) => {
 			const res = result.data;
-			const payload = res.success ? res.path : res.msg;
-			if (!res.success) throw payload;
-			this.em.emit("complete", res.success, payload);
+			let payload = res;
+
+			if (res?.path || res.url) payload = res.path || res.url;
+
+			if (!(res.success ?? true)) {
+				throw (
+					res.msg ??
+					res.message ??
+					"Unknown error while uploading file"
+				);
+			}
+
+			this.em.emit("success", payload);
 		})
 		.catch((e) => {
 			this.em.emit("error", e);
@@ -197,10 +207,12 @@ const fileUploader = function (
 	} = {}
 ) {
 	const data = {
+		src: null,
+		preview: null,
+		file: null,
 		uploading: false,
-		error: null,
 		progress: 0,
-		src: "",
+		error: null,
 	};
 
 	const update = (newData = {}, status) => {
@@ -232,8 +244,8 @@ const fileUploader = function (
 
 	update({}, "idle");
 
-	em.on("preview", function (src, file) {
-		update({ src, uploading: true }, "preview");
+	em.on("preview", function (preview, file) {
+		update({ preview, file, uploading: true }, "preview");
 	});
 
 	em.on("progress", function (progress) {
@@ -245,22 +257,25 @@ const fileUploader = function (
 		onError(error);
 	});
 
-	em.on("complete", function (status, payload) {
-		if (status) {
-			update({ uploading: false, src: payload }, "success");
-			onSuccess(payload);
+	em.on("success", function (payload) {
+		if (!payload?.length) {
+			const error = "File upload failed";
+			update({ uploading: false, src: null, error }, "error");
+			onError(error);
 			return;
 		}
 
-		update({ uploading: false, src: null, error: payload }, "error");
-		onError(payload);
+		update({ uploading: false, src: payload }, "success");
+		onSuccess(payload);
 	});
 
 	return () => {
 		update(
 			{
-				uploading: false,
 				src: null,
+				preview: null,
+				file: null,
+				uploading: false,
 				progress: 0,
 				error: null,
 			},

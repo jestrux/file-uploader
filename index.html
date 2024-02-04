@@ -173,14 +173,14 @@
 				uploadUrl: "http://localhost:8000/api/pierFiles/upload_file",
 
 				/*
-          // Uncomment the code below and add in values to use S3
-          s3: {
-            bucketName: "",
-            region: "",
-            accessKeyId: "",
-            secretAccessKey: "",
-          },
-        */
+					// Uncomment the code below and add in values to use S3
+					s3: {
+						bucketName: "",
+						region: "",
+						accessKeyId: "",
+						secretAccessKey: "",
+					},
+				*/
 				onChange(data) {
 					console.log("File uploader, on change: ", data);
 				},
@@ -204,18 +204,18 @@
 		</script>
 
 		<!--   
-      <!- - Uncomment this code block to use ES modules - ->
-      
-      <script type="module">
-        import fileUploader from "./dist/file-uploader.js";
-        const reset = fileUploader(
-          document.querySelector("#fileUploader"),
-          window.uploaderOptions
-        );
+			<!- - Uncomment this code block to use ES modules - ->
+			
+			<script type="module">
+				import fileUploader from "./dist/file-uploader.js";
+				const reset = fileUploader(
+				document.querySelector("#fileUploader"),
+				window.uploaderOptions
+				);
 
-        // Call reset to reset uploader UI
-      </script>
-    -->
+				// Call reset to reset uploader UI
+			</script>
+		-->
 
 		<!--  -->
 	</body>
