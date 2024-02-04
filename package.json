@@ -1,0 +1,20 @@
+{
+  "name": "uploader",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8"
+  },
+  "dependencies": {
+    "EventEmitter": "^1.0.0",
+    "axios": "^1.6.7",
+    "buffer": "^6.0.3",
+    "crypto-js": "^4.2.0"
+  }
+}
