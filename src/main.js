@@ -2,13 +2,17 @@ import axios from "axios";
 import EM from "EventEmitter";
 import S3FileUpload from "./S3";
 
-function FileUploader(el, { url, s3, type, maxSize = 10 * 1_000_000 } = {}) {
+function FileUploader(
+	el,
+	{ upload, url, s3, type, maxSize = 10 * 1_000_000 } = {}
+) {
 	this.fileType = type;
 	this.maxSize = maxSize;
 	this.em = new EM();
 	this.upload_path = url;
 	this.s3Config = s3;
 	this.el = el;
+	this.upload = upload;
 	const input = el.querySelector("input");
 
 	this.accepts = () => {
@@ -135,7 +139,17 @@ FileUploader.prototype.FileSelectHandler = function (e) {
 	reader.readAsDataURL(file);
 };
 
-FileUploader.prototype.UploadFile = function (file) {
+FileUploader.prototype.UploadFile = async function (file) {
+	if (typeof this.upload == "function") {
+		this.em.emit("progress", 0);
+
+		return this.upload(file)
+			.then((res) => this.em.emit("success", res))
+			.catch((error) => {
+				this.em.emit("error", error);
+			});
+	}
+
 	if (!this.upload_path?.length) return;
 
 	if (this.upload_path == "s3") {
@@ -200,6 +214,7 @@ const fileUploader = function (
 	el,
 	{
 		type = "",
+		upload,
 		uploadUrl,
 		s3,
 		maxSize = 10 * 1_000_000,
@@ -238,6 +253,7 @@ const fileUploader = function (
 	}
 
 	const { em } = new FileUploader(el, {
+		upload,
 		url: uploadUrl,
 		s3,
 		type,
@@ -247,7 +263,14 @@ const fileUploader = function (
 	update({}, "idle");
 
 	em.on("preview", function (preview, file) {
-		update({ preview, file, uploading: uploadUrl?.length }, "preview");
+		update(
+			{
+				preview,
+				file,
+				uploading: uploadUrl?.length || typeof upload == "function",
+			},
+			"preview"
+		);
 	});
 
 	em.on("progress", function (progress) {
