@@ -136,6 +136,8 @@ FileUploader.prototype.FileSelectHandler = function (e) {
 };
 
 FileUploader.prototype.UploadFile = function (file) {
+	if (!this.upload_path?.length) return;
+
 	if (this.upload_path == "s3") {
 		S3FileUpload.uploadFile(file, {
 			...(this.s3Config || {}),
@@ -245,7 +247,7 @@ const fileUploader = function (
 	update({}, "idle");
 
 	em.on("preview", function (preview, file) {
-		update({ preview, file, uploading: true }, "preview");
+		update({ preview, file, uploading: uploadUrl?.length }, "preview");
 	});
 
 	em.on("progress", function (progress) {
